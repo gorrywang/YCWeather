@@ -2,6 +2,7 @@ package xyz.abug.www.ycweather.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.trycatch.mysnackbar.Prompt;
+import com.trycatch.mysnackbar.TSnackbar;
 import com.tuyenmonkey.mkloader.MKLoader;
 
 import java.io.IOException;
@@ -96,7 +99,8 @@ public class SearchFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 SelectListDb db = mList.get(i);
-                Toast.makeText(getContext(), "已保存：" + db.getmCityname(), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getContext(), "已保存：" + db.getmCityname(), Toast.LENGTH_SHORT).show();
+                MainActivity.showTips("已保存:" + db.getmCityname(), Prompt.SUCCESS);
                 mList.clear();
                 mListString.clear();
                 mEditText.setText("");
@@ -118,7 +122,8 @@ public class SearchFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getContext(), "网络错误", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getContext(), "网络错误", Toast.LENGTH_SHORT).show();
+                        MainActivity.showTips("网络未连接", Prompt.WARNING);
                         mMkLoader.setVisibility(View.GONE);
                     }
                 });
@@ -135,7 +140,8 @@ public class SearchFragment extends Fragment {
                         @Override
                         public void run() {
                             mMkLoader.setVisibility(View.GONE);
-                            Toast.makeText(getContext(), "请输入正确的城市", Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(getContext(), "请输入正确的城市", Toast.LENGTH_SHORT).show();
+                            MainActivity.showTips("请输入正确的城市", Prompt.WARNING);
                         }
                     });
                 } else {
@@ -159,5 +165,6 @@ public class SearchFragment extends Fragment {
             }
         });
     }
+
 
 }

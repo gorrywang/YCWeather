@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private static List<Fragment> fragmentList = new ArrayList<>();
     private static MyAdapter myAdapter;
     FragmentManager mManager;
-    private ImageView mImageView;
+    private static ImageView mImageView;
     private static FloatingActionButton mActionButton;
     private Fragment mListFragment, mSearchFragment;
     private static FrameLayout mFrame;
@@ -76,9 +76,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if (Build.VERSION.SDK_INT >= 21) {
             View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            );
+            int option = View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            decorView.setSystemUiVisibility(option);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
         //注册广播
@@ -116,6 +118,10 @@ public class MainActivity extends AppCompatActivity {
         mActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //是否有网络
+                if (!isNetWorkBool) {
+                    TSnackbar.make(mImageView, "网络未连接", TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.WARNING).show();
+                }
                 switch (mSelectLevel) {
                     case LEVEL_HOME:
                         //主页
@@ -375,9 +381,12 @@ public class MainActivity extends AppCompatActivity {
      * 从搜索返回
      */
     public static void backSearch() {
+
+
         backMenu();
         //刷新数据
         getFragment();
+
     }
 
     /**
@@ -405,18 +414,29 @@ public class MainActivity extends AppCompatActivity {
                 if (networkInfo != null && networkInfo.isAvailable()) {
 //                    Toast.makeText(MainActivity.this, "联网成功",
 //                            Toast.LENGTH_SHORT).show();
-                    TSnackbar.make(mImageView, "网络已连接", TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.SUCCESS).show();
+                    TSnackbar.make(mImageView, "网络已连接", TSnackbar.LENGTH_SHORT, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.SUCCESS).show();
                     Glide.with(MainActivity.this).load("https://bing.ioliu.cn/v1?w=480&h=640").into(mImageView);
+                    isNetWorkBool = true;
                     //程序第一次运行
                     isFirstRun();
-
                 } else {
 //                    Toast.makeText(MainActivity.this, "请检查网络状态",
 //                            Toast.LENGTH_SHORT).show();
                     TSnackbar.make(mImageView, "网络未连接", TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.WARNING).show();
+                    mImageView.setImageResource(R.drawable.glidebackground);
+                    isNetWorkBool = false;
                 }
             }
         }
     }
+
+    /**
+     * 提示
+     */
+    public static void showTips(String tips, Prompt photo) {
+        //添加数据成功
+        TSnackbar.make(mImageView, tips, TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(photo).show();
+    }
+
 
 }

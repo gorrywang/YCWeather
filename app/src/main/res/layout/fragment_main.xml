@@ -28,10 +28,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+
                 <FrameLayout
                     android:id="@+id/frag_main_frame_title"
                     android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize">
+                    android:layout_height="?attr/actionBarSize"
+                    android:layout_marginTop="15dp">
 
                     <TextView
                         android:id="@+id/frag_main_txt_cityname"
@@ -66,6 +68,10 @@
                     <include layout="@layout/sub_aqi" />
 
                     <include layout="@layout/sub_proposal" />
+
+                    <View
+                        android:layout_width="wrap_content"
+                        android:layout_height="?attr/actionBarSize" />
                 </LinearLayout>
 
             </RelativeLayout>
