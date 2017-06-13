@@ -207,6 +207,11 @@ public class MainActivity extends AppCompatActivity {
                 Utils.logData(notJsonData);
                 //解析城市
                 String city = Utility.analyticFirstIp(notJsonData);
+                if (city.length() == 0) {
+                    city = "北京";
+                    TSnackbar.make(mImageView, "IP有误,默认地点更换为北京", TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.WARNING).show();
+
+                }
                 //搜索城市
                 searchCity(city);
                 //打印城市
