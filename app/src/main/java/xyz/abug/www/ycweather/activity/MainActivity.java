@@ -1,5 +1,13 @@
 package xyz.abug.www.ycweather.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -9,6 +17,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.trycatch.mysnackbar.Prompt;
+import com.trycatch.mysnackbar.TSnackbar;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,11 +40,13 @@ import xyz.abug.www.ycweather.R;
 import xyz.abug.www.ycweather.db.SelectListDb;
 import xyz.abug.www.ycweather.fragment.ListFragment;
 import xyz.abug.www.ycweather.fragment.MainFragment;
+import xyz.abug.www.ycweather.fragment.SearchFragment;
 import xyz.abug.www.ycweather.gson.Weather;
 import xyz.abug.www.ycweather.utils.HttpUtils;
 import xyz.abug.www.ycweather.utils.Utility;
 import xyz.abug.www.ycweather.utils.Utils;
 
+import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
 import static xyz.abug.www.ycweather.utils.Utils.URL_HEWEATHER_KEY;
 import static xyz.abug.www.ycweather.utils.Utils.URL_HEWEATHER_SEARCH_1;
 import static xyz.abug.www.ycweather.utils.Utils.URL_HEWEATHER_SEARCH_2;
@@ -43,31 +56,56 @@ import static xyz.abug.www.ycweather.utils.Utils.URL_HEWEATHER_WEATHER_2;
 public class MainActivity extends AppCompatActivity {
     //有无网络
     private boolean isNetWorkBool = true;
-    private ViewPager mViewPager;
-    private List<Fragment> fragmentList = new ArrayList<>();
-    private MyAdapter myAdapter;
+    private static ViewPager mViewPager;
+    private static List<Fragment> fragmentList = new ArrayList<>();
+    private static MyAdapter myAdapter;
     FragmentManager mManager;
     private ImageView mImageView;
-    private FloatingActionButton mActionButton;
-    private Fragment mListFragment;
-    private FrameLayout mFrame;
+    private static FloatingActionButton mActionButton;
+    private Fragment mListFragment, mSearchFragment;
+    private static FrameLayout mFrame;
     private static final int LEVEL_HOME = 1;
     private static final int LEVEL_MENU = 2;
     private static final int LEVEL_ADD = 3;
-    private int mSelectLevel = 1;
+    private static int mSelectLevel = 1;
+    private MyBroadcast mMyBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (Build.VERSION.SDK_INT >= 21) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            );
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
+        //注册广播
+        reg();
         bindID();
         mManager = getSupportFragmentManager();
         myAdapter = new MyAdapter(mManager);
         mViewPager.setAdapter(myAdapter);
-        //判断有无网络
-        isNetWork();
-        //程序第一次运行
-        isFirstRun();
+        //判断有无网络，在广播中
+//        isNetWork();
+    }
+
+    /**
+     * 注册广播
+     */
+    private void reg() {
+        Intent intent = new Intent();
+        mMyBroadcast = new MyBroadcast();
+        IntentFilter intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
+        registerReceiver(mMyBroadcast, intentFilter);
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mMyBroadcast != null)
+            unregisterReceiver(mMyBroadcast);
     }
 
     private void bindID() {
@@ -79,9 +117,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 switch (mSelectLevel) {
-                    case LEVEL_ADD:
-                        //添加页面
-                        break;
                     case LEVEL_HOME:
                         //主页
                         //切换fragment
@@ -96,11 +131,26 @@ public class MainActivity extends AppCompatActivity {
                         fragmentTransaction.commit();
                         //圆角图片
                         mActionButton.setImageResource(R.drawable.add);
+                        mActionButton.setVisibility(View.VISIBLE);
                         //设置等级
                         mSelectLevel = LEVEL_MENU;
                         break;
                     case LEVEL_MENU:
                         //菜单
+                        //切换fragment
+                        mFrame.setVisibility(View.VISIBLE);
+                        mViewPager.setVisibility(View.GONE);
+                        FragmentTransaction tran2 = mManager.beginTransaction();
+                        if (mSearchFragment == null) {
+                            mSearchFragment = new SearchFragment();
+                        }
+
+                        tran2.replace(R.id.main_frame_menu, mSearchFragment);
+                        tran2.commit();
+                        //圆角图片
+                        mActionButton.setVisibility(View.GONE);
+                        //设置等级
+                        mSelectLevel = LEVEL_MENU;
                         break;
                 }
             }
@@ -182,11 +232,11 @@ public class MainActivity extends AppCompatActivity {
                 //保存数据
                 SelectListDb dd = new SelectListDb();
                 //******************************测试***********************************
-                dd.setmWeatherStatus("---");
-                dd.setmWeatherTemp("---");
-                dd.setmWeatherId("CN101010100");
-                dd.setmCityname("北京");
-                Utility.saveSelectCity(dd);
+//                dd.setmWeatherStatus("---");
+//                dd.setmWeatherTemp("---");
+//                dd.setmWeatherId("CN101010100");
+//                dd.setmCityname("北京");
+//                Utility.saveSelectCity(dd);
 //                String weatherId = db.getmWeatherId();
 //                Utils.logData("第一次获取天气id：" + weatherId);
                 //根据id获取天气
@@ -238,11 +288,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 获取fragment
      */
-    List<SelectListDb> selectCity;
+    static List<SelectListDb> selectCity;
     int a = 1;
 
-    private void getFragment() {
+    private static void getFragment() {
         selectCity = Utility.findSelectCity();
+        fragmentList.clear();
         for (SelectListDb db : selectCity) {
             db.getmWeatherId();
             Fragment fragment = new MainFragment(db.getmWeatherId());
@@ -289,6 +340,11 @@ public class MainActivity extends AppCompatActivity {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             switch (mSelectLevel) {
                 case LEVEL_ADD:
+                    mFrame.setVisibility(View.VISIBLE);
+                    mViewPager.setVisibility(View.GONE);
+                    mActionButton.setImageResource(R.drawable.add);
+                    mActionButton.setVisibility(View.VISIBLE);
+                    mSelectLevel = LEVEL_MENU;
                     break;
                 case LEVEL_HOME:
                     break;
@@ -296,10 +352,71 @@ public class MainActivity extends AppCompatActivity {
                     mFrame.setVisibility(View.GONE);
                     mViewPager.setVisibility(View.VISIBLE);
                     mActionButton.setImageResource(R.drawable.other);
+                    mActionButton.setVisibility(View.VISIBLE);
                     mSelectLevel = LEVEL_HOME;
                     break;
             }
         }
         return true;
     }
+
+    /**
+     * 从菜单返回
+     */
+    public static void backMenu() {
+        mSelectLevel = LEVEL_HOME;
+        mFrame.setVisibility(View.GONE);
+        mViewPager.setVisibility(View.VISIBLE);
+        mActionButton.setImageResource(R.drawable.other);
+        mActionButton.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 从搜索返回
+     */
+    public static void backSearch() {
+        backMenu();
+        //刷新数据
+        getFragment();
+    }
+
+    /**
+     * 跳转页面
+     */
+    public static void jump(int adapterPosition) {
+        backMenu();
+        Log.e("tag", adapterPosition + "");
+        mViewPager.setCurrentItem(adapterPosition);
+    }
+
+
+    //广播
+    class MyBroadcast extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(CONNECTIVITY_ACTION)) {
+                //监听网络
+                //得到网络连接管理器
+                ConnectivityManager connectionManager = (ConnectivityManager)
+                        getSystemService(Context.CONNECTIVITY_SERVICE);
+                //通过管理器得到网络实例
+                NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
+                //判断是否连接
+                if (networkInfo != null && networkInfo.isAvailable()) {
+//                    Toast.makeText(MainActivity.this, "联网成功",
+//                            Toast.LENGTH_SHORT).show();
+                    TSnackbar.make(mImageView, "网络已连接", TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.SUCCESS).show();
+                    Glide.with(MainActivity.this).load("https://bing.ioliu.cn/v1?w=480&h=640").into(mImageView);
+                    //程序第一次运行
+                    isFirstRun();
+
+                } else {
+//                    Toast.makeText(MainActivity.this, "请检查网络状态",
+//                            Toast.LENGTH_SHORT).show();
+                    TSnackbar.make(mImageView, "网络未连接", TSnackbar.LENGTH_LONG, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.WARNING).show();
+                }
+            }
+        }
+    }
+
 }

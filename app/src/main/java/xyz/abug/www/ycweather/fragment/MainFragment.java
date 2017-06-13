@@ -3,11 +3,14 @@ package xyz.abug.www.ycweather.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.tuyenmonkey.mkloader.MKLoader;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,12 +38,15 @@ public class MainFragment extends Fragment {
     private View mView;
     private TextView mTextCityName, mTextTime, mTextTemp, mTextStatus, mTextAqi, mTextPm25, mTextCosy, mTextCar, mTextSport;
     private LinearLayout mLinear;
+    private MKLoader mMkLoader;
 
     public MainFragment(String weatherId) {
         this.weatherId = weatherId;
     }
 
     private String weatherId;
+    private SwipeRefreshLayout mSwipe;
+    private long mStartTime, mEndTime;
 
     @Nullable
     @Override
@@ -54,6 +60,9 @@ public class MainFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         bindID();
+        mStartTime = System.currentTimeMillis();
+        mMkLoader.setVisibility(View.VISIBLE);
+        mSwipe.setVisibility(View.GONE);
         getWeather(weatherId);
     }
 
@@ -61,6 +70,8 @@ public class MainFragment extends Fragment {
      * 绑定控件
      */
     private void bindID() {
+        mMkLoader = mView.findViewById(R.id.frag_main_loader_load);
+        mSwipe = mView.findViewById(R.id.frag_main_swipe_refresh);
         //城市名称
         mTextCityName = mView.findViewById(R.id.frag_main_txt_cityname);
         //时间
@@ -81,7 +92,13 @@ public class MainFragment extends Fragment {
         mTextSport = mView.findViewById(R.id.frag_main_txt_sport);
         mLinear = mView.findViewById(R.id.frag_main_linear_prediction);
 
-
+        mSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mSwipe.setRefreshing(true);
+                getWeather(weatherId);
+            }
+        });
     }
 
     /**
@@ -92,8 +109,13 @@ public class MainFragment extends Fragment {
         mTextTime.setText(weather.basic.update.lastTime.split(" ")[1]);
         mTextTemp.setText(weather.now.tmp + "°C");
         mTextStatus.setText(weather.now.cond.txt);
-        mTextAqi.setText(weather.aqi.city.aqi);
-        mTextPm25.setText(weather.aqi.city.pm25);
+        try {
+            mTextAqi.setText(weather.aqi.city.aqi);
+            mTextPm25.setText(weather.aqi.city.pm25);
+        } catch (Exception e) {
+            mTextAqi.setText("----");
+            mTextPm25.setText("----");
+        }
         mTextCosy.setText("舒适度:" + weather.suggestion.comf.txt);
         mTextCar.setText("洗车指数:" + weather.suggestion.cw.txt);
         mTextSport.setText("运动建议:" + weather.suggestion.sport.txt);
@@ -112,7 +134,31 @@ public class MainFragment extends Fragment {
             status.setText(forecast.cond.txt_d);
             mLinear.addView(inflate);
         }
-
+        mSwipe.setRefreshing(false);
+        mEndTime = System.currentTimeMillis();
+        final long time = mEndTime - mStartTime;
+        if (time - 1500 < 0) {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        sleep(1500 - time);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mMkLoader.setVisibility(View.GONE);
+                            mSwipe.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+            }.start();
+        } else {
+            mMkLoader.setVisibility(View.GONE);
+            mSwipe.setVisibility(View.VISIBLE);
+        }
     }
 
 
@@ -122,10 +168,16 @@ public class MainFragment extends Fragment {
      * @param weatherId 天气代码
      */
     private void getWeather(final String weatherId) {
+        //显示加载，关闭数据
         HttpUtils.sendQuestBackResponse(URL_HEWEATHER_WEATHER_1 + weatherId + URL_HEWEATHER_WEATHER_2 + URL_HEWEATHER_KEY, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipe.setRefreshing(false);
+                    }
+                });
             }
 
             @Override

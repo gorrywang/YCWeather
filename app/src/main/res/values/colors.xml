@@ -3,4 +3,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="qing">#ff4c02</color>
+    <color name="yin">#33778e</color>
+    <color name="yu">#002743</color>
+    <color name="other">#6a6a6a</color>
+
 </resources>
