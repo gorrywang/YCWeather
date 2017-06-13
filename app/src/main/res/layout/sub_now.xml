@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><!--预报界面-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginTop="25dp"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/frag_main_txt_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerHorizontal="true"
+        android:text="26°C"
+        android:textColor="#ffffff"
+        android:textSize="48sp" />
+
+    <TextView
+        android:id="@+id/frag_main_txt_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/frag_main_txt_temp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="多云"
+        android:textColor="#ffffff"
+        android:textSize="18sp" />
+
+
+</RelativeLayout>

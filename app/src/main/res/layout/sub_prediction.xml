@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?><!--预报界面-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginTop="25dp"
+    android:background="#55000000"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="预报"
+        android:textColor="#ffffff"
+        android:textSize="22sp" />
+
+    <LinearLayout
+        android:id="@+id/frag_main_linear_prediction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical" />
+
+</LinearLayout>

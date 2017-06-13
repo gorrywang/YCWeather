@@ -1,0 +1,7 @@
+<litepal>
+    <dbname value="yc_db" />
+    <version value="1" />
+    <list>
+        <mapping class="xyz.abug.www.ycweather.db.SelectListDb" />
+    </list>
+</litepal>
