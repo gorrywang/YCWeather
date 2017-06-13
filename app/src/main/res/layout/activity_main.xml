@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="xyz.abug.www.ycweather.activity.MainActivity">
-    <fragment
-        android:id="@+id/frag"
-        android:name="xyz.abug.www.ycweather.fragment.MainFragment"
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/main_pager_load"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-</FrameLayout>
+        android:layout_height="match_parent" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_float_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="16sp"
+        android:src="@drawable/other"
+        app:backgroundTint="@color/colorPrimary" />
+</RelativeLayout>

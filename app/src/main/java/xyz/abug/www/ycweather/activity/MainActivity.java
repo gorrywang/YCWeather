@@ -1,10 +1,16 @@
 package xyz.abug.www.ycweather.activity;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
@@ -27,15 +33,43 @@ import static xyz.abug.www.ycweather.utils.Utils.URL_HEWEATHER_WEATHER_2;
 public class MainActivity extends AppCompatActivity {
     //有无网络
     private boolean isNetWorkBool = true;
+    private ViewPager mViewPager;
+    private List<Fragment> fragmentList = new ArrayList<>();
+    private MyAdapter myAdapter;
+    FragmentManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        bindID();
+        manager = getSupportFragmentManager();
+        myAdapter = new MyAdapter(manager);
         //判断有无网络
         isNetWork();
         //程序第一次运行
         isFirstRun();
+    }
+
+    private void bindID() {
+        mViewPager = (ViewPager) findViewById(R.id.main_pager_load);
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Fragment fragment = fragmentList.get(position);
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
     /**
@@ -108,10 +142,24 @@ public class MainActivity extends AppCompatActivity {
                 //保存数据
                 SelectListDb db = dbs.get(0);
                 Utility.saveSelectCity(db);
-                String weatherId = db.getmWeatherId();
-                Utils.logData("第一次获取天气id：" + weatherId);
+                //保存数据
+                SelectListDb dd = new SelectListDb();
+                //*****************************************************************
+                dd.setmWeatherStatus("---");
+                dd.setmWeatherTemp("---");
+                dd.setmWeatherId("CN101010100");
+                dd.setmCityname("北京");
+                Utility.saveSelectCity(dd);
+//                String weatherId = db.getmWeatherId();
+//                Utils.logData("第一次获取天气id：" + weatherId);
                 //根据id获取天气
-                getWeather(weatherId);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getFragment();
+                    }
+                });
+//                getWeather(weatherId);
             }
         });
     }
@@ -138,17 +186,59 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         //保存搜索内容
-                        SelectListDb db = new SelectListDb();
-                        db.setmWeatherStatus(weather.now.cond.txt);
-                        db.setmWeatherTemp(weather.now.tmp);
-                        db.setmCityname(weather.basic.city);
-                        db.setmWeatherId(weather.basic.weatherId);
-                        Utility.upDateSelectCity(db);
+//                        SelectListDb db = new SelectListDb();
+//                        db.setmWeatherStatus(weather.now.cond.txt);
+//                        db.setmWeatherTemp(weather.now.tmp);
+//                        db.setmCityname(weather.basic.city);
+//                        db.setmWeatherId(weather.basic.weatherId);
+//                        Utility.upDateSelectCity(db);
                         MainFragment.showData(weather);
+                        //获取fragment
                     }
                 });
             }
         });
+    }
+
+    /**
+     * 获取fragment
+     */
+    List<SelectListDb> selectCity;
+    int a = 1;
+
+    private void getFragment() {
+        selectCity = Utility.findSelectCity();
+        for (SelectListDb db : selectCity) {
+            db.getmWeatherId();
+            Fragment fragment = new MainFragment();
+            fragmentList.add(fragment);
+        }
+        mViewPager.setAdapter(myAdapter);
+    }
+
+
+    /**
+     * 滑动适配器
+     */
+    private class MyAdapter extends FragmentPagerAdapter {
+
+        public MyAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return fragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return fragmentList.size();
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+        }
     }
 
 }

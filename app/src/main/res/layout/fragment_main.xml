@@ -63,14 +63,5 @@
 
     </ScrollView>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/frag_main_float_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_margin="16sp"
-        android:src="@drawable/other"
-        app:backgroundTint="@color/colorPrimary" />
 
 </RelativeLayout>

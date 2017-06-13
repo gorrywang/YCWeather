@@ -106,6 +106,15 @@ public class Utility {
     }
 
     /**
+     * 遍历所有城市
+     */
+    public static List<SelectListDb> findSelectCity() {
+        //查询数据
+        List<SelectListDb> listDbs = DataSupport.findAll(SelectListDb.class);
+        return listDbs;
+    }
+
+    /**
      * 修改列表数据
      */
     public static void upDateSelectCity(SelectListDb db) {
