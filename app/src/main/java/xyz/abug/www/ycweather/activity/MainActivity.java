@@ -20,7 +20,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -28,6 +27,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.trycatch.mysnackbar.Prompt;
 import com.trycatch.mysnackbar.TSnackbar;
+import com.tuyenmonkey.mkloader.MKLoader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,9 +57,9 @@ public class MainActivity extends AppCompatActivity {
     //有无网络
     private boolean isNetWorkBool = true;
     private static ViewPager mViewPager;
-    private static List<Fragment> fragmentList = new ArrayList<>();
-    private static MyAdapter myAdapter;
-    FragmentManager mManager;
+    private static List<Fragment> mFragmentList = new ArrayList<>();
+    private static MyAdapter mMyAdapter;
+    private FragmentManager mManager;
     private static ImageView mImageView;
     private static FloatingActionButton mActionButton;
     private Fragment mListFragment, mSearchFragment;
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int LEVEL_ADD = 3;
     private static int mSelectLevel = 1;
     private MyBroadcast mMyBroadcast;
+    private MKLoader mMkLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
         reg();
         bindID();
         mManager = getSupportFragmentManager();
-        myAdapter = new MyAdapter(mManager);
-        mViewPager.setAdapter(myAdapter);
+        mMyAdapter = new MyAdapter(mManager);
+        mViewPager.setAdapter(mMyAdapter);
         //判断有无网络，在广播中
 //        isNetWork();
     }
@@ -111,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindID() {
+        mMkLoader = (MKLoader) findViewById(R.id.main_loader_load);
         mViewPager = (ViewPager) findViewById(R.id.main_pager_load);
         mImageView = (ImageView) findViewById(R.id.main_img_background);
         mActionButton = (FloatingActionButton) findViewById(R.id.main_float_menu);
@@ -184,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         if (firstRun) {
             //第一次运行
             getIP();
+            mMkLoader.setVisibility(View.VISIBLE);
         } else {
             //非第一次运行
             getFragment();
@@ -198,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call call, IOException e) {
                 Utils.logData("错误获取Ip地址");
+                mMkLoader.setVisibility(View.GONE);
             }
 
             @Override
@@ -228,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
         HttpUtils.sendQuestBackResponse(URL_HEWEATHER_SEARCH_1 + city + URL_HEWEATHER_SEARCH_2 + URL_HEWEATHER_KEY, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
+                mMkLoader.setVisibility(View.GONE);
             }
 
             @Override
@@ -251,9 +255,11 @@ public class MainActivity extends AppCompatActivity {
 //                String weatherId = db.getmWeatherId();
 //                Utils.logData("第一次获取天气id：" + weatherId);
                 //根据id获取天气
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        mMkLoader.setVisibility(View.GONE);
                         getFragment();
                     }
                 });
@@ -304,17 +310,17 @@ public class MainActivity extends AppCompatActivity {
 
     private static void getFragment() {
         selectCity = Utility.findSelectCity();
-        fragmentList.clear();
+        mFragmentList.clear();
         for (SelectListDb db : selectCity) {
             db.getmWeatherId();
             Fragment fragment = new MainFragment(db.getmWeatherId());
-            fragmentList.add(fragment);
+            mFragmentList.add(fragment);
         }
         PagerAdapter adapter = mViewPager.getAdapter();
         if (adapter == null) {
-            mViewPager.setAdapter(myAdapter);
+            mViewPager.setAdapter(mMyAdapter);
         } else {
-            myAdapter.notifyDataSetChanged();
+            mMyAdapter.notifyDataSetChanged();
         }
     }
 
@@ -330,22 +336,24 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return fragmentList.get(position);
+            return mFragmentList.get(position);
         }
 
         @Override
         public int getCount() {
-            return fragmentList.size();
+            return mFragmentList.size();
         }
 
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-        }
+//        @Override
+//        public void destroyItem(ViewGroup container, int position, Object object) {
+//        }
     }
 
     /**
      * 返回键监听
      */
+    private boolean mBackBool = true;
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
@@ -358,6 +366,26 @@ public class MainActivity extends AppCompatActivity {
                     mSelectLevel = LEVEL_MENU;
                     break;
                 case LEVEL_HOME:
+                    if (mBackBool) {
+                        TSnackbar.make(mImageView, "再次点击退出软件", TSnackbar.LENGTH_SHORT, TSnackbar.APPEAR_FROM_TOP_TO_DOWN).setPromptThemBackground(Prompt.SUCCESS).show();
+                        mBackBool = false;
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    sleep(2000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                mBackBool = true;
+
+                            }
+                        }.start();
+                        break;
+                    } else {
+                        //退出
+                        finish();
+                    }
                     break;
                 case LEVEL_MENU:
                     mFrame.setVisibility(View.GONE);

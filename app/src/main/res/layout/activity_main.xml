@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context="xyz.abug.www.ycweather.activity.MainActivity">
 
+
     <ImageView
         android:id="@+id/main_img_background"
         android:layout_width="match_parent"
@@ -45,5 +46,14 @@
         android:layout_margin="16sp"
         android:src="@drawable/other"
         app:backgroundTint="@color/colorPrimary" />
+
+    <com.tuyenmonkey.mkloader.MKLoader
+        android:id="@+id/main_loader_load"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        app:mk_color="@color/colorPrimary"
+        app:mk_type="Whirlpool" />
 
 </RelativeLayout>

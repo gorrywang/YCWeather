@@ -84,7 +84,7 @@ public class SearchFragment extends Fragment {
         mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String s = mEditText.getText().toString();
+                String s = mEditText.getText().toString().trim();
                 if (TextUtils.isEmpty(s)) {
                     Toast.makeText(getContext(), "请输入搜索信息", Toast.LENGTH_SHORT).show();
                     return;

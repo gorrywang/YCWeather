@@ -1,5 +1,6 @@
 package xyz.abug.www.ycweather.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.trycatch.mysnackbar.Prompt;
 import com.tuyenmonkey.mkloader.MKLoader;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 import xyz.abug.www.ycweather.R;
+import xyz.abug.www.ycweather.activity.MainActivity;
 import xyz.abug.www.ycweather.db.SelectListDb;
 import xyz.abug.www.ycweather.gson.Forecast;
 import xyz.abug.www.ycweather.gson.Weather;
@@ -34,6 +37,7 @@ import static xyz.abug.www.ycweather.utils.Utils.URL_HEWEATHER_WEATHER_2;
  * Created by Dell on 2017/6/13.
  */
 
+@SuppressLint("ValidFragment")
 public class MainFragment extends Fragment {
     private View mView;
     private TextView mTextCityName, mTextTime, mTextTemp, mTextStatus, mTextAqi, mTextPm25, mTextCosy, mTextCar, mTextSport;
@@ -44,6 +48,10 @@ public class MainFragment extends Fragment {
         this.weatherId = weatherId;
     }
 
+
+    public MainFragment() {
+
+    }
     private String weatherId;
     private SwipeRefreshLayout mSwipe;
     private long mStartTime, mEndTime;
@@ -185,6 +193,10 @@ public class MainFragment extends Fragment {
                 String data = response.body().string();
                 Utils.logData("天气数据：" + data);
                 final Weather weather = Utility.analyticWeather(data);
+                if (weather == null) {
+                    MainActivity.showTips("数据获取错误", Prompt.ERROR);
+                    return;
+                }
                 //显示数据
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
